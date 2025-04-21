@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TEST</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <canvas id="myChart"></canvas>
+
+    <script>
+        const ctx = document.getElementById('myChart');
+        var map = new Map();
+
+        (async function () {
+            await fetch("/members").then(resp => resp.json()).then(data => {
+                data.forEach(item => {
+                    if (item["donations"] == 0 || item["donationsReceived"] == 0) return;
+                    map.set(item["name"], item["donations"] - item["donationsReceived"]);
+                });
+            });
+
+            map = new Map([...map.entries()].sort((a, b) => b[1] - a[1]));
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Array.from(map.keys()),
+                    datasets: [{
+                        label: 'Gespendet - Spenden erhalten',
+                        data: Array.from(map.values()),
+                        borderWidth: 1,
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        })();
+    </script>
+</body>
+
+</html>
